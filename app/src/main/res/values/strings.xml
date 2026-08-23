@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ヒーリングサウンド</string>
+    <string name="tab_solfeggio">ソルフェジオ</string>
+    <string name="tab_nature">自然音</string>
+    <string name="tab_brainwave">脳波同調</string>
+    <string name="volume">音量</string>
+    <string name="timer">タイマー</string>
+    <string name="play">再生</string>
+    <string name="stop">停止</string>
+    <string name="headphone_warning">🎧 バイノーラル音はヘッドホンでご覧ください</string>
+    <string name="timer_done">⏰ タイマー終了</string>
+</resources>
