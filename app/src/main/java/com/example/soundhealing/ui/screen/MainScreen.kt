@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.DisposableEffect
 import com.example.soundhealing.domain.BrainwaveType
 import com.example.soundhealing.domain.NatureSound
 import com.example.soundhealing.domain.SolfeggioFrequency
