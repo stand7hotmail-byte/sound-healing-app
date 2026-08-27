@@ -60,49 +60,21 @@ fun FrequencyRow(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 if (isActive) {
-                    FilledTonalIconButton(
-                        onClick = onStopClick,
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Stop,
-                            contentDescription = "停止",
-                            tint = MaterialTheme.colorScheme.error
-                        )
+                    IconButton(onClick = onStopClick) {
+                        Icon(Icons.Default.Stop, contentDescription = "Stop", tint = MaterialTheme.colorScheme.error)
                     }
                 } else {
-                    FilledIconButton(
-                        onClick = onPlayClick,
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "再生",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
+                    IconButton(onClick = onPlayClick) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = "Play", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "音量",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                VolumeSlider(
+            if (isActive) {
+                Slider(
                     value = volume,
                     onValueChange = onVolumeChange,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "${(volume * 100).toInt()}%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    valueRange = 0f..1f,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }

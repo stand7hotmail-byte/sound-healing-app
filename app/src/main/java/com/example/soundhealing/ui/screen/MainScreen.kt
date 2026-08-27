@@ -12,9 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soundhealing.domain.BrainwaveType
 import com.example.soundhealing.domain.NatureSound
 import com.example.soundhealing.domain.SolfeggioFrequency
@@ -31,13 +30,13 @@ enum class SoundTab {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
+    modifier: Modifier = Modifier,
     viewModel: SoundHealingViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(SoundTab.SOLFEGGIO) }
     var selectedSound by remember { mutableStateOf<SoundType?>(null) }
 
-    // Stop all sounds when leaving the screen
     DisposableEffect(Unit) {
         onDispose { viewModel.stopAll() }
     }
@@ -48,226 +47,179 @@ fun MainScreen(
                 title = {
                     Text(
                         text = "サウンドヒーリング",
-                        color = MaterialTheme.colorScheme.onPrimary
+                        style = MaterialTheme.typography.headlineSmall
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
-        },
-        bottomBar = {
-            BottomAppBar(
+        }
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            TabRow(
+                selectedTabIndex = selectedTab.ordinal,
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.onSurface
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                ) {
-                    if (uiState.isPlaying) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                SoundTab.values().forEach { tab ->
+                    Tab(
+                        selected = tab == selectedTab,
+                        onClick = { selectedTab = tab },
+                        text = {
                             Text(
-                                text = "🔊 再生中: ${uiState.activeSounds.size} 音源",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = when (tab) {
+                                    SoundTab.SOLFEGGIO -> "ソルフェッジョ"
+                                    SoundTab.NATURE -> "自然音"
+                                    SoundTab.BRAINWAVE -> "脳波"
+                                }
                             )
-                            FilledTonalIconButton(
-                                onClick = { viewModel.stopAll() }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Pause,
-                                    contentDescription = "すべて停止",
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    Text(
-                        text = "音量",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+
+            when (selectedTab) {
+                SoundTab.SOLFEGGIO -> {
+                    val frequencies = SolfeggioFrequency.ALL
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(frequencies) { frequency ->
+                            val isActive = uiState.activeSounds.any {
+                                it.type is SoundType.Solfeggio &&
+                                    (it.type as SoundType.Solfeggio).frequency == frequency
+                            }
+                            SoundCard(
+                                soundType = SoundType.Solfeggio(frequency),
+                                isSelected = isActive,
+                                onClick = {
+                                    if (isActive) {
+                                        viewModel.stopSound(SoundType.Solfeggio(frequency))
+                                    } else {
+                                        viewModel.playSound(SoundType.Solfeggio(frequency))
+                                    }
+                                    selectedSound = SoundType.Solfeggio(frequency)
+                                }
+                            )
+                        }
+                    }
+                }
+
+                SoundTab.NATURE -> {
+                    val sounds = NatureSound.ALL
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(sounds) { sound ->
+                            val isActive = uiState.activeSounds.any {
+                                it.type is SoundType.Nature &&
+                                    (it.type as SoundType.Nature).sound == sound
+                            }
+                            SoundCard(
+                                soundType = SoundType.Nature(sound),
+                                isSelected = isActive,
+                                onClick = {
+                                    if (isActive) {
+                                        viewModel.stopSound(SoundType.Nature(sound))
+                                    } else {
+                                        viewModel.playSound(SoundType.Nature(sound))
+                                    }
+                                    selectedSound = SoundType.Nature(sound)
+                                }
+                            )
+                        }
+                    }
+                }
+
+                SoundTab.BRAINWAVE -> {
+                    val types = BrainwaveType.values()
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(types) { type ->
+                            val isActive = uiState.activeSounds.any {
+                                it.type is SoundType.Brainwave &&
+                                    (it.type as SoundType.Brainwave).type == type
+                            }
+                            SoundCard(
+                                soundType = SoundType.Brainwave(type),
+                                isSelected = isActive,
+                                onClick = {
+                                    if (isActive) {
+                                        viewModel.stopSound(SoundType.Brainwave(type))
+                                    } else {
+                                        viewModel.playSound(SoundType.Brainwave(type))
+                                    }
+                                    selectedSound = SoundType.Brainwave(type)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (uiState.activeSounds.isNotEmpty()) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "音量", style = MaterialTheme.typography.titleSmall)
+                        Text(text = "${(uiState.volume * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
+                    }
                     VolumeSlider(
                         value = uiState.volume,
                         onValueChange = { viewModel.setVolume(it) }
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "タイマー",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    TimerPicker(
-                        selectedSeconds = uiState.timerSeconds,
-                        onSelectedChange = { viewModel.setTimer(it) }
-                    )
-                    if (uiState.timerSeconds > 0) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            if (uiState.timerRunning) {
-                                TextButton(onClick = { viewModel.cancelTimer() }) {
-                                    Text("タイマー取消")
-                                }
-                            } else {
-                                FilledTextButton(onClick = { viewModel.startTimer() }) {
-                                    Text("タイマー開始")
-                                }
-                            }
-                        }
-                    }
                 }
             }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            // Tab Row
-            Tabs(
-                tabs = listOf(
-                    SoundTab.SOLFEGGIO to "ソルフェジオ周波数",
-                    SoundTab.NATURE to "自然音",
-                    SoundTab.BRAINWAVE to "脳波同調音"
-                ),
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it }
-            )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Tab Content
-            when (selectedTab) {
-                SoundTab.SOLFEGGIO -> SolfeggioTab(
-                    onSoundSelected = { soundType ->
-                        selectedSound = soundType
-                        if (uiState.isPlaying && selectedSound == soundType) {
-                            viewModel.stopSound(soundType)
-                            selectedSound = null
-                        } else {
-                            viewModel.playSound(soundType)
-                        }
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(text = "タイマー", style = MaterialTheme.typography.titleSmall)
+                TimerPicker(
+                    selectedSeconds = uiState.timerSeconds,
+                    onSelectedChange = { seconds ->
+                        if (seconds > 0) viewModel.startTimer(seconds) else viewModel.cancelTimer()
                     }
                 )
-                SoundTab.NATURE -> NatureTab(
-                    onSoundSelected = { soundType ->
-                        selectedSound = soundType
-                        if (uiState.isPlaying && selectedSound == soundType) {
-                            viewModel.stopSound(soundType)
-                            selectedSound = null
-                        } else {
-                            viewModel.playSound(soundType)
-                        }
-                    }
-                )
-                SoundTab.BRAINWAVE -> BrainwaveTab(
-                    onSoundSelected = { soundType ->
-                        selectedSound = soundType
-                        if (uiState.isPlaying && selectedSound == soundType) {
-                            viewModel.stopSound(soundType)
-                            selectedSound = null
-                        } else {
-                            viewModel.playSound(soundType)
-                        }
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun Tabs(
-    tabs: List<Pair<SoundTab, String>>,
-    selectedTab: SoundTab,
-    onTabSelected: (SoundTab) -> Unit
-) {
-    TabRow(
-        selectedTabIndex = tabs.indexOfFirst { it.first == selectedTab },
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface
-    ) {
-        tabs.forEach { (tab, label) ->
-            Tab(
-                selected = tab == selectedTab,
-                onClick = { onTabSelected(tab) },
-                text = {
+                if (uiState.timerRunning) {
                     Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelLarge
+                        text = "残り ${uiState.timerSeconds}秒",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
-            )
-        }
-    }
-}
+            }
 
-@Composable
-fun SolfeggioTab(onSoundSelected: (SoundType) -> Unit) {
-    val isSelected = { freq: SolfeggioFrequency -> false }
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(SolfeggioFrequency.ALL) { frequency ->
-            SoundCard(
-                soundType = SoundType.Solfeggio(frequency),
-                isSelected = isSelected(frequency),
-                onClick = { onSoundSelected(SoundType.Solfeggio(frequency)) }
-            )
-        }
-    }
-}
-
-@Composable
-fun NatureTab(onSoundSelected: (SoundType) -> Unit) {
-    val isSelected = { sound: NatureSound -> false }
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(NatureSound.ALL) { sound ->
-            SoundCard(
-                soundType = SoundType.Nature(sound),
-                isSelected = isSelected(sound),
-                onClick = { onSoundSelected(SoundType.Nature(sound)) }
-            )
-        }
-    }
-}
-
-@Composable
-fun BrainwaveTab(onSoundSelected: (SoundType) -> Unit) {
-    val isSelected = { type: BrainwaveType -> false }
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(BrainwaveType.values()) { type ->
-            SoundCard(
-                soundType = SoundType.Brainwave(type),
-                isSelected = isSelected(type),
-                onClick = { onSoundSelected(SoundType.Brainwave(type)) }
-            )
+            if (uiState.activeSounds.isNotEmpty()) {
+                Button(
+                    onClick = { viewModel.stopAll() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(Icons.Default.Pause, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("すべて停止")
+                }
+            }
         }
     }
 }
