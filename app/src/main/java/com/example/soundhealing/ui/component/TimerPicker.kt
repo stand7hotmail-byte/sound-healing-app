@@ -13,10 +13,10 @@ fun TimerPicker(
     onSelectedChange: (Int) -> Unit
 ) {
     val options = listOf(
-        5 * 60 to "5分",
-        15 * 60 to "15分",
-        30 * 60 to "30分",
-        60 * 60 to "60分"
+        5 * 60 to "5달",
+        15 * 60 to "15달",
+        30 * 60 to "30달",
+        60 * 60 to "60달"
     )
 
     Row(

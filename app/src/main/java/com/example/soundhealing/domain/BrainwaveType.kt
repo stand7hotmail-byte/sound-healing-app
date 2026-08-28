@@ -5,24 +5,8 @@ enum class BrainwaveType(
     val description: String,
     val emoji: String
 ) {
-    DELTA(
-        frequencyRangeHz = Pair(0.5, 4.0),
-        description = "深い瞑想と無夢の睡眠をもたらす波。身体の回復と修復を促進し、最も深いリラクゼーション状態を誘導します。",
-        emoji = "😴"
-    ),
-    THETA(
-        frequencyRangeHz = Pair(4.0, 8.0),
-        description = "浅い瞑想と睡眠の境界で発生する波。直観力が高まり、創造性と深いリラックスが同時に得られます。",
-        emoji = "🧘"
-    ),
-    ALPHA(
-        frequencyRangeHz = Pair(8.0, 13.0),
-        description = "リラックスした覚醒状態の波。ストレス軽減と心の平穏をもたらし、集中力と幸福感を高めます。",
-        emoji = "☮️"
-    ),
-    BETA(
-        frequencyRangeHz = Pair(13.0, 30.0),
-        description = "活発な思考と集中を司る波。問題解決能力を高め、外的な刺激への対応力を強化します。",
-        emoji = "🧠"
-    )
+    DELTA(0.5..4.0, "深い睡眠、無意識の領域。身体修復と成長を促進", "💤"),
+    THETA(4.0..8.0, "深いリラクゼーション、瞑想状態。創造性と直感を高める", "🧘"),
+    ALPHA(8.0..13.0, "リラックスした覚醒状態。ストレス軽減と集中力向上", "🌿"),
+    BETA(13.0..30.0, "覚醒した思考状態。学習と問題解決を支援", "🧠")
 }
