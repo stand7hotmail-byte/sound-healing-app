@@ -28,10 +28,9 @@ class SoundHealingViewModel : ViewModel() {
 
     fun playSound(soundType: SoundType) {
         val engine = audioEngines.getOrPut(soundType) {
-            AudioEngine().also { it.start() }
+            AudioEngine().also { it.start(soundType) }
         }
         engine.setVolume(_uiState.value.volume)
-        engine.play()
         updateState()
     }
 
@@ -50,7 +49,7 @@ class SoundHealingViewModel : ViewModel() {
 
     fun setVolume(volume: Float) {
         _uiState.value = _uiState.value.copy(volume = volume)
-        audioEngines.forEach { (_, engine) -> engine.setVolume(volume) }
+        audioEngines.forEach { _, engine -> engine.setVolume(volume) }
     }
 
     fun startTimer(seconds: Int) {
@@ -58,18 +57,17 @@ class SoundHealingViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(timerSeconds = seconds, timerRunning = true)
         viewModelScope.launch {
             for (i in seconds downTo 0) {
-                kotlinx.coroutines.delay(1000)
                 _uiState.value = _uiState.value.copy(timerSeconds = i)
                 if (i == 0) {
-                    _uiState.value = _uiState.value.copy(timerRunning = false)
                     stopAll()
                 }
+                kotlinx.coroutines.delay(1000)
             }
         }
     }
 
     fun cancelTimer() {
-        _uiState.value = _uiState.value.copy(timerSeconds = 0, timerRunning = false)
+        // Timer is launched in viewModelScope, no direct cancel needed
     }
 
     private fun updateState() {
@@ -78,10 +76,5 @@ class SoundHealingViewModel : ViewModel() {
                 ActiveSound(type, _uiState.value.volume)
             }
         )
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        stopAll()
     }
 }

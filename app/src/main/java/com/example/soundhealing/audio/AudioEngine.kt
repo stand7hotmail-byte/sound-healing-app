@@ -14,10 +14,16 @@ class AudioEngine {
     private val playing = AtomicBoolean(false)
     private var sampleRate = 44100
     private var volume = 0.5f
+    private var frequency = 440.0
 
-    fun start() {
+    fun start(soundType: SoundType) {
         stop()
-        val bufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)
+        this.frequency = getFrequency(soundType)
+        val bufferSize = AudioTrack.getMinBufferSize(
+            sampleRate,
+            AudioFormat.CHANNEL_OUT_MONO,
+            AudioFormat.ENCODING_PCM_16BIT
+        )
         audioTrack = AudioTrack(
             AudioManager.STREAM_MUSIC,
             sampleRate,
@@ -31,13 +37,27 @@ class AudioEngine {
         generateTone()
     }
 
+    private fun getFrequency(soundType: SoundType): Double {
+        return when (soundType) {
+            is SoundType.Solfeggio -> soundType.frequency.frequency.toDouble()
+            is SoundType.Nature -> 200.0 // Nature sounds use different approach
+            is SoundType.Brainwave -> when (soundType.type) {
+                BrainwaveType.Delta -> 2.0
+                BrainwaveType.Theta -> 6.0
+                BrainwaveType.Alpha -> 10.0
+                BrainwaveType.Beta -> 20.0
+                BrainwaveType.Gamma -> 40.0
+            }
+        }
+    }
+
     private fun generateTone() {
         Thread {
             val buffer = ShortArray(1024)
             var phase = 0.0
             while (playing.get()) {
                 for (i in buffer.indices) {
-                    phase += 2 * Math.PI * 440.0 / sampleRate
+                    phase += 2 * Math.PI * frequency / sampleRate
                     if (phase > 2 * Math.PI) phase -= 2 * Math.PI
                     buffer[i] = (Math.sin(phase) * 0.3 * Short.MAX_VALUE * volume).toInt().toShort()
                 }
@@ -55,9 +75,5 @@ class AudioEngine {
 
     fun setVolume(v: Float) {
         volume = v
-    }
-
-    fun play() {
-        start()
     }
 }
