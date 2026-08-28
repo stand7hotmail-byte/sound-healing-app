@@ -6,12 +6,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.font.FontWeight.Companion
-import androidx.compose.ui.text.font.FontWeight.SemiBold
-import androidx.compose.ui.text.style.TextIndent
-import androidx.compose.ui.unit.sp
 
 private val DarkColorScheme = darkColorScheme(
     primary = Primary,
@@ -54,7 +48,7 @@ fun SoundHealingTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = androidx.compose.material3.Typography(),
+        typography = Typography,
         content = content
     )
 }
