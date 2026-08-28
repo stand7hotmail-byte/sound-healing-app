@@ -13,9 +13,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        SoundHealingTheme {
-            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                MainScreen(modifier = Modifier.padding(innerPadding))
+        setContent {
+            SoundHealingTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    MainScreen(modifier = Modifier.padding(innerPadding))
+                }
             }
         }
     }
