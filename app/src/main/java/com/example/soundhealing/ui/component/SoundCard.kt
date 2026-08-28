@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.soundhealing.domain.SoundType
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoundCard(
     soundType: SoundType,
