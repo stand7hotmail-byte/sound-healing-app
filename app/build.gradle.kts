@@ -4,25 +4,25 @@ plugins {
 }
 
 android {
- namespace "com.example.soundhealing"
- compileSdk 34
+ namespace = "com.example.soundhealing"
+ compileSdk = 34
 
  defaultConfig {
- applicationId "com.example.soundhealing"
- minSdk 24
- targetSdk 34
- versionCode 1
- versionName "1.0"
+ applicationId = "com.example.soundhealing"
+ minSdk = 24
+ targetSdk = 34
+ versionCode = 1
+ versionName = "1.0"
 
- testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+ testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
  vectorDrawables {
- useSupportLibrary true
+ useSupportLibrary = true
  }
  }
 
  buildTypes {
  release {
- isMinifyEnabled false
+ isMinifyEnabled = false
  proguardFiles(
  getDefaultProguardFile("proguard-android-optimize.txt"),
  "proguard-rules.pro"
@@ -37,7 +37,7 @@ android {
  jvmTarget = "17"
  }
  buildFeatures {
- compose true
+ compose = true
  }
  composeOptions {
  kotlinCompilerExtensionVersion = "1.5.14"
