@@ -1,8 +1,5 @@
 package com.example.soundhealing.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soundhealing.audio.AudioEngine
@@ -55,55 +52,52 @@ class SoundHealingViewModel : ViewModel() {
         }
         val newActive = _uiState.value.activeSounds + ActiveSound(type)
         _uiState.value = _uiState.value.copy(
-            isPlaying = true,
+            isPlaying = newActive.isNotEmpty(),
             activeSounds = newActive
         )
     }
 
     fun stopSound(type: SoundType) {
-        // For simplicity, we stop all when one is selected
-        // In a full app, you'd track individual AudioTracks
-        stopAll()
+        val newActive = _uiState.value.activeSounds.filter { it.type != type }
+        _uiState.value = _uiState.value.copy(
+            isPlaying = newActive.isNotEmpty(),
+            activeSounds = newActive
+        )
     }
 
     fun stopAll() {
         audioEngine.stopAll()
-        timerJob?.cancel()
         _uiState.value = _uiState.value.copy(
             isPlaying = false,
-            activeSounds = emptyList(),
-            timerRunning = false
+            activeSounds = emptyList()
         )
     }
 
     fun setVolume(volume: Float) {
-        audioEngine.setMasterVolume(volume)
+        audioEngine.setVolume(volume)
         _uiState.value = _uiState.value.copy(volume = volume)
     }
 
-    fun setTimer(seconds: Int) {
-        _uiState.value = _uiState.value.copy(timerSeconds = seconds)
-    }
-
-    fun startTimer() {
-        val seconds = _uiState.value.timerSeconds
-        if (seconds <= 0) return
-
+    fun startTimer(seconds: Int) {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            delay(seconds * 1000L)
+            _uiState.value = _uiState.value.copy(timerRunning = true)
+            for (i in seconds downTo 1) {
+                delay(1000L)
+                _uiState.value = _uiState.value.copy(timerSeconds = i)
+            }
             stopAll()
+            _uiState.value = _uiState.value.copy(timerRunning = false, timerSeconds = 0)
         }
-        _uiState.value = _uiState.value.copy(timerRunning = true)
     }
 
     fun cancelTimer() {
         timerJob?.cancel()
-        _uiState.value = _uiState.value.copy(timerRunning = false)
+        _uiState.value = _uiState.value.copy(timerRunning = false, timerSeconds = 0)
     }
 
     override fun onCleared() {
         super.onCleared()
-        audioEngine.release()
+        stopAll()
     }
 }

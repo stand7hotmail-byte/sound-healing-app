@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,8 +51,7 @@ fun SoundCard(
             .then(
                 if (isSelected) {
                     Modifier.border(
-                        BorderStroke(2.dp, Color(0xFF4CAF50)),
-                        RoundedCornerShape(12.dp)
+                        BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
                     )
                 } else {
                     Modifier
@@ -61,46 +59,36 @@ fun SoundCard(
             )
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = if (isSelected)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(
             modifier = Modifier
                 .padding(12.dp)
-                .fillMaxSize(),
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = emoji,
-                    fontSize = 28.sp
-                )
-                if (isSelected) {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .background(Color(0xFF4CAF50), RoundedCornerShape(6.dp))
-                    )
-                }
-            }
+            Text(
+                text = emoji,
+                fontSize = 32.sp
+            )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = name,
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1
+                textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                maxLines = 2,
-                textAlign = TextAlign.Justify
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 2
             )
         }
     }
