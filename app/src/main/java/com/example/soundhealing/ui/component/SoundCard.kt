@@ -13,32 +13,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.soundhealing.domain.SoundType
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoundCard(
     soundType: SoundType,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val emoji: String
-    val title: String
-    val description: String
-    when (soundType) {
-        is SoundType.Solfeggio -> {
-            emoji = soundType.frequency.emoji
-            title = soundType.frequency.name
-            description = soundType.frequency.description
-        }
-        is SoundType.Nature -> {
-            emoji = soundType.sound.emoji
-            title = soundType.sound.name
-            description = soundType.sound.description
-        }
-        is SoundType.Brainwave -> {
-            emoji = soundType.type.emoji
-            title = soundType.type.description
-            description = ""
-        }
+    val (emoji, name, description) = when (soundType) {
+        is SoundType.Solfeggio -> Triple(soundType.frequency.emoji, soundType.frequency.name, soundType.frequency.description)
+        is SoundType.Nature -> Triple(soundType.sound.emoji, soundType.sound.name, soundType.sound.description)
+        is SoundType.Brainwave -> Triple(soundType.type.emoji, soundType.type.description, "")
     }
 
     Card(
@@ -61,7 +45,7 @@ fun SoundCard(
             Text(text = emoji, style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = title,
+                text = name,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface

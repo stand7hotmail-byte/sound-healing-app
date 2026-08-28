@@ -1,14 +1,17 @@
 package com.example.soundhealing.domain
 
 enum class NatureSound(
-    val displayName: String,
     val description: String,
     val emoji: String
 ) {
-    RAIN("雨音", "穏やかな雨の音で心を落ち着かせます", "🌧️"),
-    OCEAN("波の音", " oceanの波の音で深いリラクゼーションを", "🌊"),
-    WIND("風の音", "森を縫う風のそよぎ", "💨"),
-    BIRDS("鳥の声", "朝の森で聴こえる鳥たちのさえずり", "🐦"),
-    CRICKET("せみの声", "夏の夜のせみの合唱", "🦗"),
-    FIRE("焚き火", "炭火がぽつぽつと響く静寂", "🔥")
+    RAIN("\u7a42\u3084\u304b\u306a\u96e8\u306e\u97f3\u3067\u5fc3\u3092\u843d\u3061\u7740\u305b\u307e\u3059", "\ud83c\udf27\ufe0f"),
+    OCEAN("\u6d77\u306e\u6ce2\u306e\u97f3\u3067\u6df1\u3044\u30ea\u30e9\u30af\u30ba\u30ec\u30fc\u30b7\u30e7\u30f3\u3092", "\ud83c\udf0a"),
+    WIND("\u68ee\u3092\u7e54\u3046\u98a8\u306e\u305d\u3088\u308a\u304e", "\ud83d\udca8"),
+    BIRDS("\u671d\u306e\u68ee\u3067\u8074\u3053\u3048\u308b\u9ce5\u305f\u3061\u306e\u3055\u3058\u3048\u308a", "\ud83d\udc26"),
+    CRICKET("\u590f\u306e\u591c\u306e\u305b\u307f\u306e\u5408\u5531", "\ud83e\udde6"),
+    FIRE("\u7826\u706b\u304c\u307d\u3063\u307d\u3063\u3068\u54cd\u304f\u9759\u5bc2", "\ud83d\udd25");
+
+    companion object {
+        val ALL: List<NatureSound> by lazy { values().toList() }
+    }
 }
