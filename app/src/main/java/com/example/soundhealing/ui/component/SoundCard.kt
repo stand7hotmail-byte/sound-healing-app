@@ -30,9 +30,6 @@ fun SoundCard(
             .fillMaxWidth()
             .padding(4.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Color(0xFF1a3a3a) else MaterialTheme.colorScheme.surfaceVariant
-        ),
         border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         onClick = onClick
     ) {
