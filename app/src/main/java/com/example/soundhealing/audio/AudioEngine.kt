@@ -40,13 +40,15 @@ class AudioEngine {
     private fun getFrequency(soundType: SoundType): Double {
         return when (soundType) {
             is SoundType.Solfeggio -> soundType.frequency.frequency.toDouble()
-            is SoundType.Nature -> 200.0 // Nature sounds use different approach
-            is SoundType.Brainwave -> when (soundType.type) {
-                BrainwaveType.Delta -> 2.0
-                BrainwaveType.Theta -> 6.0
-                BrainwaveType.Alpha -> 10.0
-                BrainwaveType.Beta -> 20.0
-                BrainwaveType.Gamma -> 40.0
+            is SoundType.Nature -> 200.0
+            is SoundType.Brainwave -> {
+                val t = soundType.type
+                when (t) {
+                    BrainwaveType.DELTA -> 2.0
+                    BrainwaveType.THETA -> 6.0
+                    BrainwaveType.ALPHA -> 10.0
+                    BrainwaveType.BETA -> 20.0
+                }
             }
         }
     }

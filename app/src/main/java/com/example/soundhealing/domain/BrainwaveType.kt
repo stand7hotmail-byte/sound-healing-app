@@ -6,8 +6,8 @@ enum class BrainwaveType(
     val description: String,
     val emoji: String
 ) {
-    DELTA(0.5, 4.0, "深い睡眠、無意識の領域。身体修復と成長を促進", "💤"),
-    THETA(4.0, 8.0, "深いリラクゼーション、瞑想状態。創造性と直感を高める", "🧘"),
-    ALPHA(8.0, 13.0, "リラックスした覚醒状態。ストレス軽減と集中力向上", "🌿"),
-    BETA(13.0, 30.0, "覚醒した思考状態。学習と問題解決を支援", "🧠")
+    DELTA(0.5, 4.0, "深い睠眠、無意識の領域。身体修復と成長を促茬", "💤"),
+    THETA(4.0, 8.0, "�xb7�いリマクゼーション、�x9e��x83��x8axb6�x80x81�x80x82�x88x9b�x80x9f�x80xa7�x81xa8�x9b��x84x9f�x82x92�xabx98�x81x99�x82x8b", "🟈"),
+    ALPHA(8.0, 13.0, "�x83xaa�x82��x82��x83x88�x81x97�x81x9f�x90x8b�x86x92�x8axb6�x80x81�x80x82�x82xb9�x83x88xe3x83xac�x82x99�xbb��xbbx89�x81xa8�x9bx86�x81x97�x82x8b�x83xaa�x83x93�x83xab�x90x91xe4xb8x8a", "🌿"),
+    BETA(13.0, 30.0, "�x90x8b�x86x92xe3x81x97xe3x81x9f�x80x9d�x80x83xe7x8axb6xe6x80x81xe3x80x82�xadxxe5xadxa6xe3x81x98xe3x81xa8xe5x95x8fxe9x80x9fxe8xa7xa3xe3x82x92xe6x8inaexx97xe3x81x99", "🚠")
 }
