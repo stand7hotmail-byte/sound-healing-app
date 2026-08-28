@@ -117,7 +117,7 @@ fun MainScreen(
                 }
 
                 SoundTab.NATURE -> {
-                    val sounds = NatureSound.ALL
+                    val sounds = NatureSound.values()
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
                         contentPadding = PaddingValues(4.dp),

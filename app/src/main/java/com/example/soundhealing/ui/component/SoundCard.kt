@@ -1,8 +1,6 @@
 package com.example.soundhealing.ui.component
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -15,16 +13,32 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.soundhealing.domain.SoundType
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoundCard(
     soundType: SoundType,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val (emoji, name, description) = when (soundType) {
-        is SoundType.Solfeggio -> soundType.frequency.emoji to soundType.frequency.name to soundType.frequency.description
-        is SoundType.Nature -> soundType.sound.emoji to soundType.sound.name to soundType.sound.description
-        is SoundType.Brainwave -> soundType.type.emoji to soundType.type.description to ""
+    val emoji: String
+    val title: String
+    val description: String
+    when (soundType) {
+        is SoundType.Solfeggio -> {
+            emoji = soundType.frequency.emoji
+            title = soundType.frequency.name
+            description = soundType.frequency.description
+        }
+        is SoundType.Nature -> {
+            emoji = soundType.sound.emoji
+            title = soundType.sound.name
+            description = soundType.sound.description
+        }
+        is SoundType.Brainwave -> {
+            emoji = soundType.type.emoji
+            title = soundType.type.description
+            description = ""
+        }
     }
 
     Card(
@@ -47,7 +61,7 @@ fun SoundCard(
             Text(text = emoji, style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = name,
+                text = title,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface

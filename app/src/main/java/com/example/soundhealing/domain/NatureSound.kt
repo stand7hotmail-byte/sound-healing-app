@@ -1,7 +1,7 @@
 package com.example.soundhealing.domain
 
 enum class NatureSound(
-    val name: String,
+    val displayName: String,
     val description: String,
     val emoji: String
 ) {
