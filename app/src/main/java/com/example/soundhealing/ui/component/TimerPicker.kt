@@ -33,13 +33,7 @@ fun TimerPicker(
                         text = label,
                         style = MaterialTheme.typography.labelMedium
                     )
-                },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                }
             )
         }
     }
