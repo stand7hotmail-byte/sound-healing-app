@@ -67,7 +67,7 @@ class SoundHealingViewModel : ViewModel() {
     }
 
     fun cancelTimer() {
-        // Timer is launched in viewModelScope, no direct cancel needed
+        // nothing to cancel
     }
 
     private fun updateState() {

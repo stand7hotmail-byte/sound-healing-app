@@ -4,8 +4,6 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import com.example.soundhealing.domain.BrainwaveType
-import com.example.soundhealing.domain.NatureSound
-import com.example.soundhealing.domain.SolfeggioFrequency
 import com.example.soundhealing.domain.SoundType
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -23,7 +21,7 @@ class AudioEngine {
             sampleRate,
             AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_16BIT
-        )
+        ) ?: return
         audioTrack = AudioTrack(
             AudioManager.STREAM_MUSIC,
             sampleRate,
