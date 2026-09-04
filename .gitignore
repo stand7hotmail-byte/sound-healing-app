@@ -43,3 +43,6 @@ coverage/
 *.jar
 coverage.exec
 coverage.ltp
+
+# Windows reserved-name artifacts
+nul

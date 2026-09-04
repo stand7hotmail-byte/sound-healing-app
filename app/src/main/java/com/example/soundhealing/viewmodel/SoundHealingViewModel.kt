@@ -1,55 +1,46 @@
 package com.example.soundhealing.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.soundhealing.audio.AudioEngine
 import com.example.soundhealing.domain.SoundType
+import com.example.soundhealing.service.AudioPlaybackService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 data class UiState(
-    val activeSounds: List<ActiveSound> = emptyList(),
+    val playing: SoundType? = null,
     val volume: Float = 0.5f,
     val timerSeconds: Int = 0,
     val timerRunning: Boolean = false
 )
 
-data class ActiveSound(
-    val type: SoundType,
-    val volume: Float
-)
-
-class SoundHealingViewModel : ViewModel() {
+class SoundHealingViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
-    private val audioEngines = mutableMapOf<SoundType, AudioEngine>()
-
     fun playSound(soundType: SoundType) {
-        val engine = audioEngines.getOrPut(soundType) {
-            AudioEngine().also { it.start(soundType) }
-        }
-        engine.setVolume(_uiState.value.volume)
-        updateState()
+        AudioPlaybackService.start(getApplication(), soundType)
+        _uiState.value = _uiState.value.copy(playing = soundType)
     }
 
     fun stopSound(soundType: SoundType) {
-        audioEngines[soundType]?.stop()
-        audioEngines.remove(soundType)
-        updateState()
+        AudioPlaybackService.stop(getApplication())
+        if (_uiState.value.playing == soundType) {
+            _uiState.value = _uiState.value.copy(playing = null)
+        }
     }
 
     fun stopAll() {
-        audioEngines.values.forEach { it.stop() }
-        audioEngines.clear()
+        AudioPlaybackService.stop(getApplication())
         cancelTimer()
-        updateState()
+        _uiState.value = _uiState.value.copy(playing = null, timerRunning = false)
     }
 
     fun setVolume(volume: Float) {
         _uiState.value = _uiState.value.copy(volume = volume)
-        audioEngines.forEach { _, engine -> engine.setVolume(volume) }
+        AudioPlaybackService.updateVolume(getApplication(), volume)
     }
 
     fun startTimer(seconds: Int) {
@@ -67,14 +58,6 @@ class SoundHealingViewModel : ViewModel() {
     }
 
     fun cancelTimer() {
-        // nothing to cancel
-    }
-
-    private fun updateState() {
-        _uiState.value = _uiState.value.copy(
-            activeSounds = audioEngines.keys.map { type ->
-                ActiveSound(type, _uiState.value.volume)
-            }
-        )
+        _uiState.value = _uiState.value.copy(timerSeconds = 0, timerRunning = false)
     }
 }

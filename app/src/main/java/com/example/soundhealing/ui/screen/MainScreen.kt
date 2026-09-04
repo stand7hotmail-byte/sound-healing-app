@@ -1,13 +1,11 @@
 package com.example.soundhealing.ui.screen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -55,10 +53,11 @@ fun MainScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
-        }
+        },
+        modifier = modifier
     ) { padding ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
@@ -76,7 +75,7 @@ fun MainScreen(
                         text = {
                             Text(
                                 text = when (tab) {
-                                    SoundTab.SOLFEGGIO -> "ソルフェッジョ"
+                                    SoundTab.SOLFEGGIO -> "ソルフェジオ"
                                     SoundTab.NATURE -> "自然音"
                                     SoundTab.BRAINWAVE -> "脳波"
                                 }
@@ -96,20 +95,14 @@ fun MainScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(frequencies) { frequency ->
-                            val isActive = uiState.activeSounds.any {
-                                it.type is SoundType.Solfeggio &&
-                                    (it.type as SoundType.Solfeggio).frequency == frequency
-                            }
+                            val type = SoundType.Solfeggio(frequency)
+                            val isActive = uiState.playing == type
                             SoundCard(
-                                soundType = SoundType.Solfeggio(frequency),
+                                soundType = type,
                                 isSelected = isActive,
                                 onClick = {
-                                    if (isActive) {
-                                        viewModel.stopSound(SoundType.Solfeggio(frequency))
-                                    } else {
-                                        viewModel.playSound(SoundType.Solfeggio(frequency))
-                                    }
-                                    selectedSound = SoundType.Solfeggio(frequency)
+                                    if (isActive) viewModel.stopSound(type)
+                                    else viewModel.playSound(type)
                                 }
                             )
                         }
@@ -125,20 +118,14 @@ fun MainScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(sounds) { sound ->
-                            val isActive = uiState.activeSounds.any {
-                                it.type is SoundType.Nature &&
-                                    (it.type as SoundType.Nature).sound == sound
-                            }
+                            val type = SoundType.Nature(sound)
+                            val isActive = uiState.playing == type
                             SoundCard(
-                                soundType = SoundType.Nature(sound),
+                                soundType = type,
                                 isSelected = isActive,
                                 onClick = {
-                                    if (isActive) {
-                                        viewModel.stopSound(SoundType.Nature(sound))
-                                    } else {
-                                        viewModel.playSound(SoundType.Nature(sound))
-                                    }
-                                    selectedSound = SoundType.Nature(sound)
+                                    if (isActive) viewModel.stopSound(type)
+                                    else viewModel.playSound(type)
                                 }
                             )
                         }
@@ -154,20 +141,14 @@ fun MainScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(types) { type ->
-                            val isActive = uiState.activeSounds.any {
-                                it.type is SoundType.Brainwave &&
-                                    (it.type as SoundType.Brainwave).type == type
-                            }
+                            val soundType = SoundType.Brainwave(type)
+                            val isActive = uiState.playing == soundType
                             SoundCard(
-                                soundType = SoundType.Brainwave(type),
+                                soundType = soundType,
                                 isSelected = isActive,
                                 onClick = {
-                                    if (isActive) {
-                                        viewModel.stopSound(SoundType.Brainwave(type))
-                                    } else {
-                                        viewModel.playSound(SoundType.Brainwave(type))
-                                    }
-                                    selectedSound = SoundType.Brainwave(type)
+                                    if (isActive) viewModel.stopSound(soundType)
+                                    else viewModel.playSound(soundType)
                                 }
                             )
                         }
@@ -175,7 +156,7 @@ fun MainScreen(
                 }
             }
 
-            if (uiState.activeSounds.isNotEmpty()) {
+            if (uiState.playing != null) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -190,26 +171,25 @@ fun MainScreen(
                         onValueChange = { viewModel.setVolume(it) }
                     )
                 }
-            }
 
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(text = "タイマー", style = MaterialTheme.typography.titleSmall)
-                TimerPicker(
-                    selectedSeconds = uiState.timerSeconds,
-                    onSelectedChange = { seconds ->
-                        if (seconds > 0) viewModel.startTimer(seconds) else viewModel.cancelTimer()
-                    }
-                )
-                if (uiState.timerRunning) {
-                    Text(
-                        text = "残り ${uiState.timerSeconds}秒",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(text = "タイマー", style = MaterialTheme.typography.titleSmall)
+                    TimerPicker(
+                        selectedSeconds = uiState.timerSeconds,
+                        onSelectedChange = { seconds ->
+                            if (seconds > 0) viewModel.startTimer(seconds)
+                            else viewModel.cancelTimer()
+                        }
                     )
+                    if (uiState.timerRunning) {
+                        Text(
+                            text = "残り ${uiState.timerSeconds}秒",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
-            }
 
-            if (uiState.activeSounds.isNotEmpty()) {
                 Button(
                     onClick = { viewModel.stopAll() },
                     modifier = Modifier.fillMaxWidth(),

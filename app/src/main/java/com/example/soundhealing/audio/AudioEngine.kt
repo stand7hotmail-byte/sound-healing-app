@@ -11,7 +11,7 @@ class AudioEngine {
     private var audioTrack: AudioTrack? = null
     private val playing = AtomicBoolean(false)
     private var sampleRate = 44100
-    private var volume = 0.5f
+    private var volume = 0.6f
     private var frequency = 440.0
 
     fun start(soundType: SoundType) {
