@@ -8,6 +8,9 @@ import com.example.soundhealing.domain.SoundType
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AudioEngine {
+    companion object {
+        const val TAG = "AudioEngine"
+    }
     private var audioTrack: AudioTrack? = null
     private val playing = AtomicBoolean(false)
     private var sampleRate = 44100
@@ -15,13 +18,14 @@ class AudioEngine {
     private var frequency = 440.0
 
     fun start(soundType: SoundType) {
+        android.util.Log.d(TAG, "start soundType=$soundType")
         stop()
         this.frequency = getFrequency(soundType)
         val bufferSize = AudioTrack.getMinBufferSize(
             sampleRate,
             AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_16BIT
-        ) ?: return
+        )
         audioTrack = AudioTrack(
             AudioManager.STREAM_MUSIC,
             sampleRate,

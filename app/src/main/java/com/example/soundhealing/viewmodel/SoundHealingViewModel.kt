@@ -1,6 +1,7 @@
 package com.example.soundhealing.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soundhealing.domain.SoundType
@@ -17,15 +18,18 @@ data class UiState(
 )
 
 class SoundHealingViewModel(application: Application) : AndroidViewModel(application) {
+    companion object { const val TAG = "ViewModel" }
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
     fun playSound(soundType: SoundType) {
+        Log.d(TAG, "playSound type=$soundType")
         AudioPlaybackService.start(getApplication(), soundType)
         _uiState.value = _uiState.value.copy(playing = soundType)
     }
 
     fun stopSound(soundType: SoundType) {
+        Log.d(TAG, "stopSound type=$soundType")
         AudioPlaybackService.stop(getApplication())
         if (_uiState.value.playing == soundType) {
             _uiState.value = _uiState.value.copy(playing = null)
@@ -33,6 +37,7 @@ class SoundHealingViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun stopAll() {
+        Log.d(TAG, "stopAll")
         AudioPlaybackService.stop(getApplication())
         cancelTimer()
         _uiState.value = _uiState.value.copy(playing = null, timerRunning = false)

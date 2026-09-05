@@ -9,9 +9,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.soundhealing.R
@@ -22,8 +21,8 @@ import com.example.soundhealing.domain.SolfeggioFrequency
 import com.example.soundhealing.domain.SoundType
 
 class AudioPlaybackService : Service() {
-
     companion object {
+        const val TAG = "AudioPlayback"
         private const val CHANNEL_ID = "sound_healing_playback"
         private const val NOTIFICATION_ID = 1001
         private const val SERVICE_TYPE = ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
@@ -90,23 +89,29 @@ class AudioPlaybackService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "onCreate")
         createChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "onStartCommand action=${intent?.action}")
         when (intent?.action) {
             ACTION_PLAY -> {
                 val type = deserialize(intent.getStringExtra(EXTRA_KIND), intent.getStringExtra(EXTRA_ID))
+                Log.d(TAG, "play type=$type")
                 if (type != null) {
                     currentType = type
-                    startForeground(NOTIFICATION_ID, buildNotification(type))
-                    engine.start(type)
+                    android.util.Log.d(TAG, "calling startForeground"); startForeground(NOTIFICATION_ID, buildNotification(type))
+                    android.util.Log.d(TAG, "engine started"); engine.start(type)
                 }
             }
             ACTION_UPDATE_VOLUME -> {
                 engine.setVolume(intent.getFloatExtra(EXTRA_VOLUME, 0.5f))
             }
-            ACTION_STOP -> stopSelf()
+            ACTION_STOP -> {
+                Log.d(TAG, "stop")
+                stopSelf()
+            }
         }
         return START_NOT_STICKY
     }
@@ -139,6 +144,7 @@ class AudioPlaybackService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        Log.d(TAG, "onDestroy")
         engine.stop()
         super.onDestroy()
     }

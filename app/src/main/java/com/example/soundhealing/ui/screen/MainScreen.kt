@@ -1,5 +1,6 @@
 package com.example.soundhealing.ui.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -101,6 +102,7 @@ fun MainScreen(
                                 soundType = type,
                                 isSelected = isActive,
                                 onClick = {
+                                    Log.d("MainScreen", "tap Solfeggio type=$type isActive=$isActive")
                                     if (isActive) viewModel.stopSound(type)
                                     else viewModel.playSound(type)
                                 }
@@ -124,6 +126,7 @@ fun MainScreen(
                                 soundType = type,
                                 isSelected = isActive,
                                 onClick = {
+                                    Log.d("MainScreen", "tap Nature type=$type isActive=$isActive")
                                     if (isActive) viewModel.stopSound(type)
                                     else viewModel.playSound(type)
                                 }
@@ -147,6 +150,7 @@ fun MainScreen(
                                 soundType = soundType,
                                 isSelected = isActive,
                                 onClick = {
+                                    Log.d("MainScreen", "tap Brainwave soundType=$soundType isActive=$isActive")
                                     if (isActive) viewModel.stopSound(soundType)
                                     else viewModel.playSound(soundType)
                                 }
