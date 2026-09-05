@@ -1,4 +1,10 @@
-package com.example.soundhealing.service
+import base64
+from pathlib import Path
+
+base = Path('C:/Users/stand/Documents/hermes_project/sound-healing-app')
+
+# Update AudioPlaybackService with startWithDelay
+svc = '''package com.example.soundhealing.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -197,3 +203,15 @@ class AudioPlaybackService : Service() {
         super.onDestroy()
     }
 }
+'''
+
+encoded = base64.b64encode(svc.encode('utf-8')).decode()
+b64_path = base / 'tmp_svc.b64'
+b64_path.write_text(encoded)
+
+content = base64.b64decode(encoded).decode()
+p = base / 'app/src/main/java/com/example/soundhealing/service/AudioPlaybackService.kt'
+p.write_bytes(content.encode())
+b = p.read_bytes()
+print(f'AudioPlaybackService.kt: eq={b.count(b"=")} bytes={len(b)}')
+b64_path.unlink()

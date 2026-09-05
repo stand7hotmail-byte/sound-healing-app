@@ -1,4 +1,10 @@
-package com.example.soundhealing.ui.screen
+import base64
+from pathlib import Path
+
+base = Path('C:/Users/stand/Documents/hermes_project/sound-healing-app')
+
+# MainScreen.kt fixed
+ms = '''package com.example.soundhealing.ui.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -326,3 +332,17 @@ fun RandomTab() {
         }
     }
 }
+'''
+
+encoded = base64.b64encode(ms.encode('utf-8')).decode()
+b64_path = base / 'tmp_ms.b64'
+b64_path.write_text(encoded)
+
+content = base64.b64decode(encoded).decode()
+p = base / 'app/src/main/java/com/example/soundhealing/ui/screen/MainScreen.kt'
+p.write_bytes(content.encode())
+b = p.read_bytes()
+print(f'MainScreen.kt: eq={b.count(b"=")} bytes={len(b)}')
+print(f'Has RANDOM: {b"SoundTab.RANDOM" in b}')
+print(f'Has by collect: {b"by viewModel.uiState.collectAsState()" in b}')
+b64_path.unlink()

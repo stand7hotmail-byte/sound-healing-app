@@ -1,4 +1,10 @@
-package com.example.soundhealing.audio
+import base64
+from pathlib import Path
+
+base = Path('C:/Users/stand/Documents/hermes_project/sound-healing-app')
+
+# AudioEngine.kt with fade support
+audio_engine = '''package com.example.soundhealing.audio
 
 import android.media.AudioFormat
 import android.media.AudioManager
@@ -142,3 +148,12 @@ class AudioEngine {
         volume = v
     }
 }
+'''
+
+# Base64 encode
+encoded = base64.b64encode(audio_engine.encode('utf-8')).decode('ascii')
+# Write base64 to temp file
+b64_path = base / 'tmp_audio.b64'
+b64_path.write_text(encoded)
+print(f'Encoded length: {len(encoded)}')
+print(f'Original eq count: {audio_engine.count("=")}')

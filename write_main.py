@@ -1,5 +1,12 @@
-package com.example.soundhealing.ui.screen
+import base64
+from pathlib import Path
 
+base = Path('C:/Users/stand/Documents/hermes_project/sound-healing-app')
+
+# MainScreen.kt with new Random tab
+ms = '''package com.example.soundhealing.ui.screen
+
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -19,6 +26,7 @@ import com.example.soundhealing.domain.RandomSession
 import com.example.soundhealing.domain.SolfeggioFrequency
 import com.example.soundhealing.domain.SoundType
 import com.example.soundhealing.ui.component.SoundCard
+import com.example.soundhealing.ui.component.TimerPicker
 import com.example.soundhealing.ui.component.VolumeSlider
 import com.example.soundhealing.viewmodel.RandomSessionViewModel
 import com.example.soundhealing.viewmodel.SoundHealingViewModel
@@ -33,7 +41,7 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     viewModel: SoundHealingViewModel = viewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState = viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(SoundTab.SOLFEGGIO) }
 
     DisposableEffect(Unit) {
@@ -88,9 +96,9 @@ fun MainScreen(
             }
 
             when (selectedTab) {
-                SoundTab.SOLFEGGIO -> SolfeggioTab(viewModel, uiState)
-                SoundTab.NATURE -> NatureTab(viewModel, uiState)
-                SoundTab.BRAINWAVE -> BrainwaveTab(viewModel, uiState)
+                SoundTab.SOLFEGGIO -> SolfeggioTab(viewModel)
+                SoundTab.NATURE -> NatureTab(viewModel)
+                SoundTab.BRAINWAVE -> BrainwaveTab(viewModel)
                 SoundTab.RANDOM -> RandomTab()
             }
         }
@@ -98,7 +106,8 @@ fun MainScreen(
 }
 
 @Composable
-fun SolfeggioTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.UiState) {
+fun SolfeggioTab(viewModel: SoundHealingViewModel) {
+    val uiState = viewModel.uiState.collectAsState()
     val frequencies = SolfeggioFrequency.ALL
     
     LazyVerticalGrid(
@@ -146,7 +155,8 @@ fun SolfeggioTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhea
 }
 
 @Composable
-fun NatureTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.UiState) {
+fun NatureTab(viewModel: SoundHealingViewModel) {
+    val uiState = viewModel.uiState.collectAsState()
     val sounds = NatureSound.values()
     
     LazyVerticalGrid(
@@ -194,7 +204,8 @@ fun NatureTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealin
 }
 
 @Composable
-fun BrainwaveTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.UiState) {
+fun BrainwaveTab(viewModel: SoundHealingViewModel) {
+    val uiState = viewModel.uiState.collectAsState()
     val types = BrainwaveType.values()
     
     LazyVerticalGrid(
@@ -244,7 +255,7 @@ fun BrainwaveTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhea
 @Composable
 fun RandomTab() {
     val viewModel: RandomSessionViewModel = viewModel()
-    val state by viewModel.state.collectAsState()
+    val state = viewModel.state.collectAsState()
     
     LaunchedEffect(Unit) {
         viewModel.generateSessions()
@@ -259,16 +270,16 @@ fun RandomTab() {
             style = MaterialTheme.typography.bodyMedium
         )
         
-        if (state.sessions.isNotEmpty()) {
+        if (state.value.sessions.isNotEmpty()) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(4.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(state.sessions.size) { index ->
-                    val session = state.sessions[index]
-                    val isSelected = state.selectedIndices.contains(index)
+                items(state.value.sessions.indices) { index ->
+                    val session = state.value.sessions[index]
+                    val isSelected = state.value.selectedIndices.contains(index)
                     SoundCard(
                         soundType = session.soundType,
                         isSelected = isSelected,
@@ -279,7 +290,7 @@ fun RandomTab() {
             
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "選択中: ${state.selectedIndices.size} 個の周波数",
+                    text = "選択中: ${state.value.selectedIndices.size} 個の周波数",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -289,10 +300,10 @@ fun RandomTab() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = "音量", style = MaterialTheme.typography.titleSmall)
-                    Text(text = "${(state.volume * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
+                    Text(text = "${(state.value.volume * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
                 }
                 VolumeSlider(
-                    value = state.volume,
+                    value = state.value.volume,
                     onValueChange = { viewModel.setVolume(it) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -303,7 +314,7 @@ fun RandomTab() {
                     Button(
                         onClick = { viewModel.startPlaying() },
                         modifier = Modifier.weight(1f),
-                        enabled = state.selectedIndices.isNotEmpty() && !state.isPlaying
+                        enabled = state.value.selectedIndices.isNotEmpty() && !state.value.isPlaying
                     ) {
                         Icon(Icons.Default.PlayArrow, contentDescription = null)
                         Spacer(modifier = Modifier.width(4.dp))
@@ -313,7 +324,7 @@ fun RandomTab() {
                         onClick = { viewModel.stopPlaying() },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                        enabled = state.isPlaying
+                        enabled = state.value.isPlaying
                     ) {
                         Icon(Icons.Default.Pause, contentDescription = null)
                         Spacer(modifier = Modifier.width(4.dp))
@@ -326,3 +337,16 @@ fun RandomTab() {
         }
     }
 }
+'''
+
+encoded = base64.b64encode(ms.encode('utf-8')).decode()
+b64_path = base / 'tmp_ms.b64'
+b64_path.write_text(encoded)
+
+content = base64.b64decode(encoded).decode()
+p = base / 'app/src/main/java/com/example/soundhealing/ui/screen/MainScreen.kt'
+p.write_bytes(content.encode())
+b = p.read_bytes()
+print(f'MainScreen.kt: eq={b.count(b"=")} bytes={len(b)}')
+print(f'Has RANDOM tab: {b"SoundTab.RANDOM" in b}')
+b64_path.unlink()
