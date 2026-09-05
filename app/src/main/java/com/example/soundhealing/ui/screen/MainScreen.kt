@@ -16,11 +16,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soundhealing.domain.BrainwaveType
 import com.example.soundhealing.domain.NatureSound
 import com.example.soundhealing.domain.RandomSession
-import com.example.soundhealing.ui.component.WaveformView
 import com.example.soundhealing.domain.SolfeggioFrequency
 import com.example.soundhealing.domain.SoundType
 import com.example.soundhealing.ui.component.SoundCard
 import com.example.soundhealing.ui.component.VolumeSlider
+import com.example.soundhealing.ui.component.WaveformView
 import com.example.soundhealing.viewmodel.RandomSessionViewModel
 import com.example.soundhealing.viewmodel.SoundHealingViewModel
 
@@ -89,9 +89,24 @@ fun MainScreen(
             }
 
             when (selectedTab) {
-                SoundTab.SOLFEGGIO -> SolfeggioTab(viewModel, uiState)
-                SoundTab.NATURE -> NatureTab(viewModel, uiState)
-                SoundTab.BRAINWAVE -> BrainwaveTab(viewModel, uiState)
+                SoundTab.SOLFEGGIO -> SoundTabContent(
+                    items = SolfeggioFrequency.ALL.map { SoundType.Solfeggio(it) },
+                    viewModel = viewModel,
+                    uiState = uiState,
+                    typeChecker = { it is SoundType.Solfeggio }
+                )
+                SoundTab.NATURE -> SoundTabContent(
+                    items = NatureSound.values().map { SoundType.Nature(it) },
+                    viewModel = viewModel,
+                    uiState = uiState,
+                    typeChecker = { it is SoundType.Nature }
+                )
+                SoundTab.BRAINWAVE -> SoundTabContent(
+                    items = BrainwaveType.values().map { SoundType.Brainwave(it) },
+                    viewModel = viewModel,
+                    uiState = uiState,
+                    typeChecker = { it is SoundType.Brainwave }
+                )
                 SoundTab.RANDOM -> RandomTab()
             }
         }
@@ -99,123 +114,19 @@ fun MainScreen(
 }
 
 @Composable
-fun SolfeggioTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.SoundHealingViewModel.UiState) {
-    val frequencies = SolfeggioFrequency.ALL
-    
+fun SoundTabContent(
+    items: List<SoundType>,
+    viewModel: SoundHealingViewModel,
+    uiState: SoundHealingViewModel.UiState,
+    typeChecker: (SoundType) -> Boolean
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(4.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(frequencies) { frequency ->
-            val type = SoundType.Solfeggio(frequency)
-            val isActive = uiState.playing == type
-            SoundCard(
-                soundType = type,
-                isSelected = isActive,
-                onClick = {
-                    if (isActive) viewModel.stopSound(type)
-                    else viewModel.playSound(type)
-                }
-            )
-        }
-    }
-    
-    if (uiState.playing != null && uiState.playing is SoundType.Solfeggio) {
-        WaveformView(
-            soundType = uiState.playing,
-            modifier = Modifier.fillMaxWidth(),
-            amplitude = 0.8f
-        )
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "音量", style = MaterialTheme.typography.titleSmall)
-                Text(text = "${(uiState.volume * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
-            }
-            VolumeSlider(value = uiState.volume, onValueChange = { viewModel.setVolume(it) })
-        }
-        Button(
-            onClick = { viewModel.stopAll() },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-        ) {
-            Icon(Icons.Default.Pause, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("すべて停止")
-        }
-    }
-}
-
-@Composable
-fun NatureTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.SoundHealingViewModel.UiState) {
-    val sounds = NatureSound.values()
-    
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(4.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(sounds) { sound ->
-            val type = SoundType.Nature(sound)
-            val isActive = uiState.playing == type
-            SoundCard(
-                soundType = type,
-                isSelected = isActive,
-                onClick = {
-                    if (isActive) viewModel.stopSound(type)
-                    else viewModel.playSound(type)
-                }
-            )
-        }
-    }
-    
-    if (uiState.playing != null && uiState.playing is SoundType.Nature) {
-        WaveformView(
-            soundType = uiState.playing,
-            modifier = Modifier.fillMaxWidth(),
-            amplitude = 0.8f
-        )
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "音量", style = MaterialTheme.typography.titleSmall)
-                Text(text = "${(uiState.volume * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
-            }
-            VolumeSlider(value = uiState.volume, onValueChange = { viewModel.setVolume(it) })
-        }
-        Button(
-            onClick = { viewModel.stopAll() },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-        ) {
-            Icon(Icons.Default.Pause, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("すべて停止")
-        }
-    }
-}
-
-@Composable
-fun BrainwaveTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.SoundHealingViewModel.UiState) {
-    val types = BrainwaveType.values()
-    
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(4.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(types) { type ->
-            val soundType = SoundType.Brainwave(type)
+        items(items) { soundType ->
             val isActive = uiState.playing == soundType
             SoundCard(
                 soundType = soundType,
@@ -227,8 +138,8 @@ fun BrainwaveTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhea
             )
         }
     }
-    
-    if (uiState.playing != null && uiState.playing is SoundType.Brainwave) {
+
+    if (uiState.playing != null && typeChecker(uiState.playing)) {
         WaveformView(
             soundType = uiState.playing,
             modifier = Modifier.fillMaxWidth(),
@@ -241,9 +152,15 @@ fun BrainwaveTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhea
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "音量", style = MaterialTheme.typography.titleSmall)
-                Text(text = "${(uiState.volume * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = "${(uiState.volume * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
-            VolumeSlider(value = uiState.volume, onValueChange = { viewModel.setVolume(it) })
+            VolumeSlider(
+                value = uiState.volume,
+                onValueChange = { viewModel.setVolume(it) }
+            )
         }
         Button(
             onClick = { viewModel.stopAll() },
@@ -261,11 +178,11 @@ fun BrainwaveTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhea
 fun RandomTab() {
     val viewModel: RandomSessionViewModel = viewModel()
     val state by viewModel.state.collectAsState()
-    
+
     LaunchedEffect(Unit) {
         viewModel.generateSessions()
     }
-    
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -274,7 +191,7 @@ fun RandomTab() {
             text = "ランダム生成: 各周波数のフェードイン/アウト時間と再生タイミングをランダムに生成します",
             style = MaterialTheme.typography.bodyMedium
         )
-        
+
         if (state.sessions.isNotEmpty()) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -292,7 +209,7 @@ fun RandomTab() {
                     )
                 }
             }
-            
+
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "選択中: ${state.selectedIndices.size} 個の周波数",
@@ -305,7 +222,10 @@ fun RandomTab() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = "音量", style = MaterialTheme.typography.titleSmall)
-                    Text(text = "${(state.volume * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        text = "${(state.volume * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
                 VolumeSlider(
                     value = state.volume,
@@ -338,7 +258,9 @@ fun RandomTab() {
                 }
             }
         } else {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
     }
 }
