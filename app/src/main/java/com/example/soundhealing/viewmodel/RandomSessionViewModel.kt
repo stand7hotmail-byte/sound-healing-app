@@ -49,7 +49,7 @@ class RandomSessionViewModel(application: Application) : AndroidViewModel(applic
         sessions.forEach { session ->
             AudioPlaybackService.startWithDelay(
                 getApplication(),
-                session,
+                session.soundType,
                 session.startDelaySeconds * 1000L
             )
         }

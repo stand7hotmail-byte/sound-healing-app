@@ -1,13 +1,19 @@
 package com.example.soundhealing.domain
 
-enum class NatureSound(
+data class NatureSound(
+    val name: String,
     val description: String,
     val emoji: String
 ) {
-    RAIN("静かな雨の音で心をもたらします", "🌧️"),
-    OCEAN("海の波の音で深いリラクゼーションを", "🌊"),
-    WIND("森を織う風のそよぎ", "💨"),
-    BIRDS("朝の森で聴こえる鳥たちのさえずり", "🐦"),
-    CRICKET("夏の夜のせみの合唱", "🪲"),
-    FIRE("篝火がぽつぽつと響く静寂", "🔥")
+    val displayData get() = DisplayData(name, description, emoji)
+    
+    companion object {
+        val ALL = listOf(
+            NatureSound("雨音", "静かな雨の音で心をもたらす", "🌧️"),
+            NatureSound("海浪", "海の波の音で深いリラクゼーションを", "🌊"),
+            NatureSound("森林", "森を織う風のそよぎ", "🌲"),
+            NatureSound("風", "朝の森で聴こえる鳥たちのさえずり", "🍃"),
+            NatureSound("溪流", "透明的流水声，净化心灵", "💧")
+        )
+    }
 }

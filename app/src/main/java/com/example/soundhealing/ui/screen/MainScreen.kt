@@ -96,13 +96,13 @@ fun MainScreen(
                     typeChecker = { it is SoundType.Solfeggio }
                 )
                 SoundTab.NATURE -> SoundTabContent(
-                    items = NatureSound.values().map { SoundType.Nature(it) },
+                    items = NatureSound.ALL.map { SoundType.Nature(it) },
                     viewModel = viewModel,
                     uiState = uiState,
                     typeChecker = { it is SoundType.Nature }
                 )
                 SoundTab.BRAINWAVE -> SoundTabContent(
-                    items = BrainwaveType.values().map { SoundType.Brainwave(it) },
+                    items = BrainwaveType.entries.map { SoundType.Brainwave(it) },
                     viewModel = viewModel,
                     uiState = uiState,
                     typeChecker = { it is SoundType.Brainwave }

@@ -7,6 +7,8 @@ data class SolfeggioFrequency(
     val description: String,
     val emoji: String
 ) {
+    val displayData get() = DisplayData(name, description, emoji)
+    
     companion object {
         val ALL = listOf(
             SolfeggioFrequency(1, "迷いの除去", 396.0, "罪やGuiltを取り除き、自由な自分を取り戻す周波数", "🎵"),
