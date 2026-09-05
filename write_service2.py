@@ -1,4 +1,10 @@
-package com.example.soundhealing.service
+import base64
+from pathlib import Path
+
+base = Path('C:/Users/stand/Documents/hermes_project/sound-healing-app')
+
+# Update AudioPlaybackService - fix startWithDelay and Intent usage
+svc = '''package com.example.soundhealing.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -212,3 +218,10 @@ class AudioPlaybackService : Service() {
         super.onDestroy()
     }
 }
+'''
+
+p = base / 'app/src/main/java/com/example/soundhealing/service/AudioPlaybackService.kt'
+p.write_bytes(svc.encode('utf-8'))
+b = p.read_bytes()
+print(f'AudioPlaybackService.kt: eq={b.count(b"=")} bytes={len(b)}')
+print(f'Has startWithDelay: {b"fun startWithDelay" in b}')
