@@ -126,6 +126,7 @@ class AudioPlaybackService : Service() {
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("サウンドヒーリング")
             .setContentText(displayName(type))
+            .setVisibility(androidx.core.app.NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setContentIntent(stopIntent)
             .addAction(R.drawable.ic_stop, "停止", stopIntent)
@@ -135,7 +136,7 @@ class AudioPlaybackService : Service() {
     private fun createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                CHANNEL_ID, "サウンドヒーリング再生", NotificationManager.IMPORTANCE_LOW
+                CHANNEL_ID, "サウンドヒーリング再生", NotificationManager.IMPORTANCE_DEFAULT
             )
             getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         }
