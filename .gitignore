@@ -46,3 +46,9 @@ coverage.ltp
 
 # Windows reserved-name artifacts
 nul
+
+# Screenshots
+screenshots/
+
+# Build logs
+logs/
