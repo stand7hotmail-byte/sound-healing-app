@@ -1,26 +1,34 @@
 package com.example.soundhealing.viewmodel
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soundhealing.audio.AudioEngine
 import com.example.soundhealing.domain.SoundType
 import com.example.soundhealing.service.AudioPlaybackService
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
-data class UiState(
-    val playing: SoundType? = null,
-    val volume: Float = 0.5f,
-    val timerSeconds: Int = 0,
-    val timerRunning: Boolean = false
-)
+import android.util.Log
 
 class SoundHealingViewModel(application: Application) : AndroidViewModel(application) {
-    companion object { const val TAG = "ViewModel" }
+    companion object {
+        const val TAG = "ViewModel"
+    }
+
+    data class UiState(
+        val playing: SoundType? = null,
+        val volume: Float = 0.5f,
+        val timerSeconds: Int = 0,
+        val timerRunning: Boolean = false
+    )
+
     private val _uiState = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = _uiState
+    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+    private var timerJob: Job? = null
 
     fun playSound(soundType: SoundType) {
         Log.d(TAG, "playSound type=$soundType")
@@ -39,30 +47,29 @@ class SoundHealingViewModel(application: Application) : AndroidViewModel(applica
     fun stopAll() {
         Log.d(TAG, "stopAll")
         AudioPlaybackService.stop(getApplication())
-        cancelTimer()
         _uiState.value = _uiState.value.copy(playing = null, timerRunning = false)
     }
 
     fun setVolume(volume: Float) {
-        _uiState.value = _uiState.value.copy(volume = volume)
+        Log.d(TAG, "setVolume $volume")
         AudioPlaybackService.updateVolume(getApplication(), volume)
+        _uiState.value = _uiState.value.copy(volume = volume)
     }
 
     fun startTimer(seconds: Int) {
-        cancelTimer()
+        stopAll()
         _uiState.value = _uiState.value.copy(timerSeconds = seconds, timerRunning = true)
-        viewModelScope.launch {
-            for (i in seconds downTo 0) {
+        timerJob = viewModelScope.launch {
+            for (i in seconds downTo 1) {
+                kotlinx.coroutines.delay(1000L)
                 _uiState.value = _uiState.value.copy(timerSeconds = i)
-                if (i == 0) {
-                    stopAll()
-                }
-                kotlinx.coroutines.delay(1000)
             }
+            stopAll()
         }
     }
 
     fun cancelTimer() {
-        _uiState.value = _uiState.value.copy(timerSeconds = 0, timerRunning = false)
+        timerJob?.cancel()
+        _uiState.value = _uiState.value.copy(timerRunning = false, timerSeconds = 0)
     }
 }

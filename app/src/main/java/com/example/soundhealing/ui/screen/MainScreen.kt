@@ -16,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soundhealing.domain.BrainwaveType
 import com.example.soundhealing.domain.NatureSound
 import com.example.soundhealing.domain.RandomSession
+import com.example.soundhealing.ui.component.WaveformView
 import com.example.soundhealing.domain.SolfeggioFrequency
 import com.example.soundhealing.domain.SoundType
 import com.example.soundhealing.ui.component.SoundCard
@@ -98,7 +99,7 @@ fun MainScreen(
 }
 
 @Composable
-fun SolfeggioTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.UiState) {
+fun SolfeggioTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.SoundHealingViewModel.UiState) {
     val frequencies = SolfeggioFrequency.ALL
     
     LazyVerticalGrid(
@@ -121,7 +122,12 @@ fun SolfeggioTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhea
         }
     }
     
-    if (uiState.playing != null) {
+    if (uiState.playing != null && uiState.playing is SoundType.Solfeggio) {
+        WaveformView(
+            soundType = uiState.playing,
+            modifier = Modifier.fillMaxWidth(),
+            amplitude = 0.8f
+        )
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -146,7 +152,7 @@ fun SolfeggioTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhea
 }
 
 @Composable
-fun NatureTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.UiState) {
+fun NatureTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.SoundHealingViewModel.UiState) {
     val sounds = NatureSound.values()
     
     LazyVerticalGrid(
@@ -169,7 +175,12 @@ fun NatureTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealin
         }
     }
     
-    if (uiState.playing != null) {
+    if (uiState.playing != null && uiState.playing is SoundType.Nature) {
+        WaveformView(
+            soundType = uiState.playing,
+            modifier = Modifier.fillMaxWidth(),
+            amplitude = 0.8f
+        )
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -194,7 +205,7 @@ fun NatureTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealin
 }
 
 @Composable
-fun BrainwaveTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.UiState) {
+fun BrainwaveTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhealing.viewmodel.SoundHealingViewModel.UiState) {
     val types = BrainwaveType.values()
     
     LazyVerticalGrid(
@@ -217,7 +228,12 @@ fun BrainwaveTab(viewModel: SoundHealingViewModel, uiState: com.example.soundhea
         }
     }
     
-    if (uiState.playing != null) {
+    if (uiState.playing != null && uiState.playing is SoundType.Brainwave) {
+        WaveformView(
+            soundType = uiState.playing,
+            modifier = Modifier.fillMaxWidth(),
+            amplitude = 0.8f
+        )
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
