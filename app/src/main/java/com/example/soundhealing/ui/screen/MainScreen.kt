@@ -177,60 +177,6 @@ fun SoundTabContent(
 @Composable
 fun RandomTab() {
  val context = LocalContext.current
- val engine = remember { AudioEngine() }
- var isPlaying by remember { mutableStateOf(false) }
- var currentFreq by remember { mutableStateOf(440.0) }
-
- Column(
-     modifier = Modifier
-         .fillMaxSize()
-         .padding(16.dp),
-     horizontalAlignment = Alignment.CenterHorizontally,
-     verticalArrangement = Arrangement.Center
- ) {
-     Text(
-         text = "シンプルテスト: 440Hz純音",
-         style = MaterialTheme.typography.titleLarge
-     )
-     Spacer(modifier = Modifier.height(8.dp))
-     Text(
-         text = "周波数: ${"%.1f".format(currentFreq)} Hz",
-         style = MaterialTheme.typography.bodyLarge
-     )
-     Spacer(modifier = Modifier.height(32.dp))
-     Row(
-         horizontalArrangement = Arrangement.spacedBy(16.dp)
-     ) {
-         Button(
-             onClick = {
-                 android.util.Log.d("DebugTab", "Play button clicked")
-                 engine.setVolume(0.5f)
-                 engine.startSimple(SoundType.Solfeggio(SolfeggioFrequency.ALL[0]))
-                 isPlaying = true
-             }
-         ) {
-             Text("再生 (440Hz)")
-         }
-         Button(
-             onClick = {
-                 android.util.Log.d("DebugTab", "Stop button clicked")
-                 engine.stop()
-                 isPlaying = false
-             },
-             enabled = isPlaying,
-             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-         ) {
-             Text("停止")
-         }
-     }
-     Spacer(modifier = Modifier.height(32.dp))
-     Text(
-         text = if (isPlaying) "再生中..." else "停止しています",
-         style = MaterialTheme.typography.bodyMedium
-     )
- }
-
- DisposableEffect(Unit) {
-     onDispose { engine.stop() }
- }
+ val randomVM = remember { RandomSessionViewModel(context.applicationContext as android.app.Application) }
+ val state by randomVM.state.collectAsState()
 }

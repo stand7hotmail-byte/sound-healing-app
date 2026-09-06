@@ -3,9 +3,8 @@ package com.example.soundhealing.viewmodel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import com.example.soundhealing.audio.AudioEngine
 import com.example.soundhealing.domain.RandomSession
-import com.example.soundhealing.domain.SolfeggioFrequency
-import com.example.soundhealing.service.AudioPlaybackService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,10 +17,15 @@ data class RandomSessionState(
 )
 
 class RandomSessionViewModel(application: Application) : AndroidViewModel(application) {
-    companion object { const val TAG = "RandomSessionVM" }
+    companion object {
+        const val TAG = "RandomSessionVM"
+    }
     
     private val _state = MutableStateFlow(RandomSessionState())
     val state: StateFlow<RandomSessionState> = _state.asStateFlow()
+    
+    // 各セッションのAudioEngineリスト
+    private val engines = mutableListOf<AudioEngine>()
     
     fun generateSessions() {
         val sessions = RandomSession.generateAll()
@@ -46,23 +50,36 @@ class RandomSessionViewModel(application: Application) : AndroidViewModel(applic
         val sessions = _state.value.sessions.filterIndexed { index, _ -> index in selected }
         Log.d(TAG, "Start playing ${sessions.size} sessions")
         
-        sessions.forEach { session ->
-            AudioPlaybackService.start(
-                getApplication(),
-                session.soundType
-            )
+        // 未生成のEngineを作成
+        while (engines.size < sessions.size) {
+            engines.add(AudioEngine())
+        }
+        
+        // 各セッションを別Engineで再生
+        sessions.forEachIndexed { i, session ->
+            engines[i].start(session)
+            Log.d(TAG, "Started engine $i for ${session.frequency.name}")
         }
         
         _state.value = _state.value.copy(isPlaying = true)
     }
     
     fun stopPlaying() {
-        AudioPlaybackService.stop(getApplication())
-        _state.value = _state.value.copy(isPlaying = false, selectedIndices = emptySet())
+        engines.forEach { it.stop() }
+        Log.d(TAG, "Stopped all engines")
+        _state.value = _state.value.copy(isPlaying = false)
     }
     
-    fun setVolume(v: Float) {
-        AudioPlaybackService.updateVolume(getApplication(), v)
-        _state.value = _state.value.copy(volume = v)
+    fun setVolume(volume: Float) {
+        _state.value = _state.value.copy(volume = volume)
+        engines.forEach { it.setVolume(volume) }
+        Log.d(TAG, "Set volume to $volume")
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        stopPlaying()
+        engines.clear()
+        Log.d(TAG, "ViewModel cleared")
     }
 }
