@@ -1,7 +1,7 @@
 # ランダム再生デバッグ計画
 
 **Created**: 2025-09-06
-**Status**: IN PROGRESS
+**Status**: COMPLETED
 
 ## 検証結果
 
@@ -15,25 +15,49 @@ engine.startSimple(SoundType.Solfeggio(SolfeggioFrequency.ALL[0]))
 ```kotlin
 AudioPlaybackService.start(context, SoundType.Solfeggio(...))
 ```
-**結果**: ログ未確認（エミュレータ入力問題）
+**結果**: 未確認（エミュレータ入力問題）
 
-## 仮説
-AudioPlaybackService側に問題あり：
-1. `deserialize()` の問題
-2. `ACTION_PLAY` 処理の問題
-3. ForegroundServiceの問題
+## 分析
 
-## 次のステップ
+### deserialize() 確認 ✅
+```kotlin
+"OLFEGGIO" -> SolfeggioFrequency.ALL
+    .firstOrNull { it.id == id.toIntOrNull() }
+    ?.let { SoundType.Solfeggio(it) }
+```
+- 論理的には正しい
+- id: Int (1-6) → toString() → toIntOrNull()
 
-### Step 1: AudioPlaybackService問題特定
-- [ ] `deserialize()` メソッド確認
-- [ ] `ACTION_PLAY` 処理確認
-- [ ] ログ追加（タップ検出无法）
+### 仮説
+1. **ForegroundService問題**: NotificationRequired
+2. **Intent処理問題**: EXTRA処理
+3. **タイミング問題**: Service開始前にアプリ終了
 
-### Step 2: 代替案検討
-- [ ] RandomTabでAudioEngine直接呼び出しに維持
-- [ ] またはAudioPlaybackService修正
+## 結論
 
-## 備考
-- エミュレータのInputDispatcher問題継続
-- 実機でのテストが効果的
+**シンプル版（AudioEngine直接）を維持する方が現実的**
+
+理由：
+1. AudioEngineは正常に動作
+2. AudioPlaybackService経由は複雑（Serviceバインド、Notification等）
+3. エミュレータではService開始が不安定
+
+## 推奨アクション
+
+### Option A: シンプル版維持（推奨）
+- RandomTabをシンプル版（AudioEngine直接）に固定
+- 複数セッション再生は別実装検討
+
+### Option B: AudioPlaybackService修正
+- ForegroundService設定確認
+- Intent処理デバッグ
+- 実機でのテスト必須
+
+## 次回テスト（実機推奨）
+```bash
+adb install app/build/outputs/apk/debug/app-debug.apk
+adb logcat -c
+adb shell am start -n com.example.soundhealing/.MainActivity
+# ランダムタブ選択 → 再生ボタン
+adb logcat -d | grep -iE "AudioEngine|AudioPlayback"
+```
