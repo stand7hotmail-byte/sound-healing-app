@@ -47,10 +47,9 @@ class RandomSessionViewModel(application: Application) : AndroidViewModel(applic
         Log.d(TAG, "Start playing ${sessions.size} sessions")
         
         sessions.forEach { session ->
-            AudioPlaybackService.startWithDelay(
+            AudioPlaybackService.start(
                 getApplication(),
-                session.soundType,
-                session.startDelaySeconds * 1000L
+                session.soundType
             )
         }
         
