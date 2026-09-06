@@ -3,9 +3,10 @@ package com.example.soundhealing.audio
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
-import com.example.soundhealing.domain.BrainwaveType
-import com.example.soundhealing.domain.SoundType
+import android.util.Log
 import com.example.soundhealing.domain.RandomSession
+import com.example.soundhealing.domain.SoundType
+import com.example.soundhealing.domain.BrainwaveType
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.sin
 import kotlin.math.PI
@@ -18,26 +19,38 @@ class AudioEngine {
     private var audioTrack: AudioTrack? = null
     private val playing = AtomicBoolean(false)
     private var sampleRate = 44100
-    private var volume = 0.6f
+    private var volume = 0.5f
     private var frequency = 440.0
     
+    // For RandomSession (multi-frequency)
     fun start(session: RandomSession) {
-        android.util.Log.d(TAG, "start session: ${session.frequency.name} fade=${session.fadeInSeconds}s dur=${session.durationSeconds}s")
+        Log.d(TAG, "start session:${session.frequency.name} fade=${session.fadeInSeconds}s dur=${session.durationSeconds}s")
         stop()
         frequency = session.frequency.frequency.toDouble()
-        val bufferSize = AudioTrack.getMinBufferSize(
+        
+        val minBufferSize = AudioTrack.getMinBufferSize(
             sampleRate,
             AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_16BIT
         )
+        val bufferSize = minBufferSize * 2
+        
         audioTrack = AudioTrack(
             AudioManager.STREAM_MUSIC,
             sampleRate,
             AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_16BIT,
-            bufferSize * 2,
+            bufferSize,
             AudioTrack.MODE_STREAM
         )
+        
+        if (audioTrack?.state != AudioTrack.STATE_INITIALIZED) {
+            Log.e(TAG, "AudioTrack initialization failed!")
+            audioTrack?.release()
+            audioTrack = null
+            return
+        }
+        
         audioTrack?.play()
         playing.set(true)
         
@@ -49,73 +62,63 @@ class AudioEngine {
             var sampleCount = 0
             
             while (playing.get() && sampleCount < totalSamples) {
-                val fadeInNorm = (sampleCount.toDouble() / fadeInSamples).coerceIn(0.0, 1.0)
+                val fadeInNorm = if (sampleCount < fadeInSamples) {
+                    sampleCount.toFloat() / fadeInSamples
+                } else {
+                    1.0f
+                }
+                val fadeOutNorm = if (session.durationSeconds > 0 && 
+                    sampleCount > totalSamples - fadeInSamples) {
+                    (totalSamples - sampleCount).toFloat() / fadeInSamples
+                } else {
+                    1.0f
+                }
+                val envelope = fadeInNorm * fadeOutNorm
+                
                 for (i in buffer.indices) {
                     phase += 2 * PI * frequency / sampleRate
                     if (phase > 2 * PI) phase -= 2 * PI
-                    buffer[i] = (sin(phase) * Short.MAX_VALUE * volume * fadeInNorm).toInt().toShort()
+                    buffer[i] = (sin(phase) * envelope * volume * Short.MAX_VALUE).toInt().toShort()
                 }
                 audioTrack?.write(buffer, 0, buffer.size)
                 sampleCount += buffer.size
             }
-            
-            if (playing.get()) {
-                val fadeOutSamples = (session.fadeOutSeconds * sampleRate).toInt()
-                var fadeCount = 0
-                while (playing.get() && fadeCount < fadeOutSamples) {
-                    val fadeOutNorm = 1.0 - (fadeCount.toDouble() / fadeOutSamples)
-                    for (i in buffer.indices) {
-                        phase += 2 * PI * frequency / sampleRate
-                        if (phase > 2 * PI) phase -= 2 * PI
-                        buffer[i] = (sin(phase) * Short.MAX_VALUE * volume * fadeOutNorm).toInt().toShort()
-                    }
-                    audioTrack?.write(buffer, 0, buffer.size)
-                    fadeCount += buffer.size
-                }
-            }
-            stop()
+            if (playing.get()) stop()
         }.start()
     }
     
-    fun startSimple(soundType: SoundType) {
-        android.util.Log.d(TAG, "startSimple soundType=$soundType")
+    // Simple version for test
+    fun startSimple(frequencyHz: Double = 440.0) {
+        Log.d(TAG, "startSimple: frequency=$frequencyHz")
         stop()
-        frequency = getFrequency(soundType)
-        val bufferSize = AudioTrack.getMinBufferSize(
+        frequency = frequencyHz
+        
+        val minBufferSize = AudioTrack.getMinBufferSize(
             sampleRate,
             AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_16BIT
         )
+        val bufferSize = minBufferSize * 2
+        
         audioTrack = AudioTrack(
             AudioManager.STREAM_MUSIC,
             sampleRate,
             AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_16BIT,
-            bufferSize * 2,
+            bufferSize,
             AudioTrack.MODE_STREAM
         )
+        
+        if (audioTrack?.state != AudioTrack.STATE_INITIALIZED) {
+            Log.e(TAG, "AudioTrack initialization failed!")
+            audioTrack?.release()
+            audioTrack = null
+            return
+        }
+        
         audioTrack?.play()
         playing.set(true)
-        generateTone()
-    }
-    
-    private fun getFrequency(soundType: SoundType): Double {
-        return when (soundType) {
-            is SoundType.Solfeggio -> soundType.frequency.frequency.toDouble()
-            is SoundType.Nature -> 200.0
-            is SoundType.Brainwave -> {
-                val t = soundType.type
-                when (t) {
-                    BrainwaveType.DELTA -> 2.0
-                    BrainwaveType.THETA -> 6.0
-                    BrainwaveType.ALPHA -> 10.0
-                    BrainwaveType.BETA -> 20.0
-                }
-            }
-        }
-    }
-    
-    private fun generateTone() {
+        
         Thread {
             val buffer = ShortArray(1024)
             var phase = 0.0
@@ -123,7 +126,7 @@ class AudioEngine {
                 for (i in buffer.indices) {
                     phase += 2 * PI * frequency / sampleRate
                     if (phase > 2 * PI) phase -= 2 * PI
-                    buffer[i] = (sin(phase) * 0.3 * Short.MAX_VALUE * volume).toInt().toShort()
+                    buffer[i] = (sin(phase) * volume * Short.MAX_VALUE).toInt().toShort()
                 }
                 audioTrack?.write(buffer, 0, buffer.size)
             }
@@ -131,14 +134,16 @@ class AudioEngine {
     }
     
     fun stop() {
-        android.util.Log.d(TAG, "stop")
+        Log.d(TAG, "stop()")
         playing.set(false)
         audioTrack?.stop()
         audioTrack?.release()
         audioTrack = null
     }
     
-    fun setVolume(v: Float) {
-        volume = v
+    fun isPlaying(): Boolean = playing.get()
+    
+    fun setVolume(volume: Float) {
+        this.volume = volume.coerceIn(0f, 1f)
     }
 }

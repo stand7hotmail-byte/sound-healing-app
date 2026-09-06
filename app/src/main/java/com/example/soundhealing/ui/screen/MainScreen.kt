@@ -88,6 +88,18 @@ fun MainScreen(
             selectedTab = SoundTab.RANDOM
         }
         
+
+    // Test tone buttons
+    Row(modifier = Modifier.padding(8.dp)) {
+        Button(onClick = { viewModel.testTone(440.0) }) {
+            Text("テスト音再生")
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Button(onClick = { viewModel.stopTestTone() }) {
+            Text("テスト音停止")
+        }
+    }
+
         when (selectedTab) {
                     SoundTab.SOLFEGGIO -> SoundTabContent(
                         items = SolfeggioFrequency.ALL.map { SoundType.Solfeggio(it) },

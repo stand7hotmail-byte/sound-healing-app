@@ -78,7 +78,14 @@ class AudioPlaybackService : Service() {
                 if (type != null) {
                     currentType = type
                     startForeground(Constants.NOTIFICATION_ID, buildNotification(type))
-                    engine.startSimple(type)
+                    // Map SoundType to frequency
+            val freq = when (type) {
+                is SoundType.Solfeggio -> type.frequency.frequency.toDouble()
+                is SoundType.Nature -> 200.0 // Low frequency for nature sounds
+                is SoundType.Brainwave -> 100.0 // Low frequency for brainwave
+                else -> 440.0
+            }
+            engine.startSimple(freq)
                 }
             }
             Constants.ACTION_UPDATE_VOLUME -> {

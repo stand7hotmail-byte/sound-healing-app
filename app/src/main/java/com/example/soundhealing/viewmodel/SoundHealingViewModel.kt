@@ -72,4 +72,17 @@ class SoundHealingViewModel(application: Application) : AndroidViewModel(applica
         timerJob?.cancel()
         _uiState.value = _uiState.value.copy(timerRunning = false, timerSeconds = 0)
     }
+
+    private var audioEngine: AudioEngine? = null
+
+    fun testTone(frequency: Double) {
+        Log.d(TAG, "testTone: $frequency")
+        audioEngine = AudioEngine()
+        audioEngine?.startSimple(frequency)
+    }
+
+    fun stopTestTone() {
+        Log.d(TAG, "stopTestTone")
+        audioEngine?.stop()
+    }
 }
