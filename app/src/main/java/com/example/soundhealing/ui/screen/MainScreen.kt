@@ -19,6 +19,7 @@ import com.example.soundhealing.ui.component.WaveformView
 import com.example.soundhealing.viewmodel.RandomSessionViewModel
 import com.example.soundhealing.viewmodel.SoundHealingViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
 
 enum class SoundTab {
     SOLFEGGIO, NATURE, BRAINWAVE, RANDOM
@@ -32,8 +33,7 @@ fun MainScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(SoundTab.SOLFEGGIO) }
-    val randomVM = remember { RandomSessionViewModel(viewModel.application) }
-
+    
     DisposableEffect(Unit) {
         onDispose { viewModel.stopAll() }
     }
@@ -98,7 +98,7 @@ fun MainScreen(
                         uiState = uiState,
                         typeChecker = { it is SoundType.Brainwave }
                     )
-                    SoundTab.RANDOM -> RandomTab(randomVM)
+                    SoundTab.RANDOM -> RandomTab()
                 }
             }
         }
@@ -173,7 +173,9 @@ fun SoundTabContent(
 }
 
 @Composable
-fun RandomTab(randomVM: RandomSessionViewModel) {
+fun RandomTab() {
+    val context = LocalContext.current
+    val randomVM = remember { RandomSessionViewModel(context.applicationContext as android.app.Application) }
     val state by randomVM.state.collectAsState()
 
     LaunchedEffect(Unit) {
