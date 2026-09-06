@@ -1,6 +1,8 @@
 package com.example.soundhealing.viewmodel
 
 import android.app.Application
+import android.widget.Toast
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soundhealing.audio.AudioEngine
@@ -11,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import android.util.Log
 
 class SoundHealingViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
@@ -29,10 +30,15 @@ class SoundHealingViewModel(application: Application) : AndroidViewModel(applica
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
+    private var audioEngine: AudioEngine? = null
 
     fun playSound(soundType: SoundType) {
-        Log.d(TAG, "playSound type=$soundType")
-        AudioPlaybackService.start(getApplication(), soundType)
+        val freq = when (soundType) {
+            is SoundType.Solfeggio -> soundType.frequency.frequency
+            else -> 440.0
+        }
+        Log.d(TAG, "playSound freq=$freq")
+        AudioPlaybackService.start(getApplication(), freq)
         _uiState.value = _uiState.value.copy(playing = soundType)
     }
 
@@ -73,16 +79,17 @@ class SoundHealingViewModel(application: Application) : AndroidViewModel(applica
         _uiState.value = _uiState.value.copy(timerRunning = false, timerSeconds = 0)
     }
 
-    private var audioEngine: AudioEngine? = null
-
     fun testTone(frequency: Double) {
-        Log.d(TAG, "testTone: $frequency")
+        Log.d(TAG, "testTone: $frequency Hz")
+        Toast.makeText(getApplication(), "testTone $frequency Hz", Toast.LENGTH_SHORT).show()
         audioEngine = AudioEngine()
-        audioEngine?.startSimple(frequency)
+        audioEngine?.startTone(frequency)
     }
 
     fun stopTestTone() {
         Log.d(TAG, "stopTestTone")
+        Toast.makeText(getApplication(), "stopTestTone", Toast.LENGTH_SHORT).show()
         audioEngine?.stop()
+        audioEngine = null
     }
 }

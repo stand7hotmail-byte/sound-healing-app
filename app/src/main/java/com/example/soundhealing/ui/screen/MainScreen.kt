@@ -2,8 +2,6 @@ package com.example.soundhealing.ui.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -11,22 +9,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import com.example.soundhealing.domain.BrainwaveType
-import com.example.soundhealing.domain.NatureSound
-import com.example.soundhealing.audio.AudioEngine
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import com.example.soundhealing.domain.SolfeggioFrequency
 import com.example.soundhealing.domain.SoundType
 import com.example.soundhealing.ui.component.SoundCard
 import com.example.soundhealing.ui.component.VolumeSlider
-import com.example.soundhealing.ui.component.WaveformView
-import com.example.soundhealing.viewmodel.RandomSessionViewModel
 import com.example.soundhealing.viewmodel.SoundHealingViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.platform.LocalContext
-
-enum class SoundTab {
-    SOLFEGGIO, NATURE, BRAINWAVE, RANDOM
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,8 +26,9 @@ fun MainScreen(
     viewModel: SoundHealingViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableStateOf(SoundTab.SOLFEGGIO) }
-    
+    var clickCount by remember { mutableStateOf(0) }
+    var lastClick by remember { mutableStateOf<String?>(null) }
+
     DisposableEffect(Unit) {
         onDispose { viewModel.stopAll() }
     }
@@ -51,229 +43,73 @@ fun MainScreen(
                     )
                 }
             )
-        },
-        content = { padding ->
-            Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                TabRow(
-                    selectedTabIndex = selectedTab.ordinal,
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ) {
-                    SoundTab.entries.forEach { tab ->
-                        Tab(
-                            selected = tab == selectedTab,
-                            onClick = { selectedTab = tab },
-                            text = {
-                                val label = when (tab) {
-                                    SoundTab.SOLFEGGIO -> "ソルフェジオ"
-                                    SoundTab.NATURE -> "自然音"
-                                    SoundTab.BRAINWAVE -> "脳波"
-                                    SoundTab.RANDOM -> "ランダム生成"
-                                }
-                                Text(label)
-                            }
-                        )
-                    }
-                }
-
-                // Auto-switch to Random tab after 2 seconds
-        LaunchedEffect(Unit) {
-            kotlinx.coroutines.delay(2000)
-            selectedTab = SoundTab.RANDOM
         }
-        
-
-    // Test tone buttons
-    Row(modifier = Modifier.padding(8.dp)) {
-        Button(onClick = { viewModel.testTone(440.0) }) {
-            Text("テスト音再生")
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Button(onClick = { viewModel.stopTestTone() }) {
-            Text("テスト音停止")
-        }
-    }
-
-        when (selectedTab) {
-                    SoundTab.SOLFEGGIO -> SoundTabContent(
-                        items = SolfeggioFrequency.ALL.map { SoundType.Solfeggio(it) },
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        typeChecker = { it is SoundType.Solfeggio }
-                    )
-                    SoundTab.NATURE -> SoundTabContent(
-                        items = NatureSound.ALL.map { SoundType.Nature(it) },
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        typeChecker = { it is SoundType.Nature }
-                    )
-                    SoundTab.BRAINWAVE -> SoundTabContent(
-                        items = BrainwaveType.entries.map { SoundType.Brainwave(it) },
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        typeChecker = { it is SoundType.Brainwave }
-                    )
-                    SoundTab.RANDOM -> RandomTab()
-                }
-            }
-        }
-    )
-}
-
-@Composable
-fun SoundTabContent(
-    items: List<SoundType>,
-    viewModel: SoundHealingViewModel,
-    uiState: SoundHealingViewModel.UiState,
-    typeChecker: (SoundType) -> Boolean
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(4.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(items) { soundType ->
-            val isActive = typeChecker(soundType) && uiState.playing == soundType
-            SoundCard(
-                soundType = soundType,
-                isSelected = isActive,
-                onClick = {
-                    if (isActive) {
-                        viewModel.stopSound(soundType)
-                    } else {
-                        viewModel.playSound(soundType)
-                    }
-                }
-            )
-        }
-    }
-
-    if (uiState.playing != null) {
+    ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            val name = when (val s = uiState.playing) {
-                is SoundType.Solfeggio -> s.frequency.name
-                is SoundType.Nature -> s.sound.name
-                is SoundType.Brainwave -> s.type.label
-                else -> ""
+            if (clickCount > 0) {
+                Text(text = "クリック数: $clickCount, 最後: $lastClick")
             }
-            Text(
-                text = name,
-                style = MaterialTheme.typography.titleLarge
-            )
-            if (uiState.playing != null) {
-                WaveformView(soundType = uiState.playing)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            VolumeSlider(
-                value = uiState.volume,
-                onValueChange = viewModel::setVolume
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = viewModel::stopAll,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("停止")
+                Button(
+                    onClick = {
+                        clickCount++
+                        lastClick = "再生"
+                        viewModel.testTone(440.0)
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("テスト音再生")
+                }
+                Button(
+                    onClick = {
+                        clickCount++
+                        lastClick = "停止"
+                        viewModel.stopTestTone()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Stop, contentDescription = null)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("テスト音停止")
+                }
             }
-        }
-    }
-}
 
-@Composable
-fun RandomTab() {
-    val context = LocalContext.current
-    val randomVM = remember { RandomSessionViewModel(context.applicationContext as android.app.Application) }
-    val state by randomVM.state.collectAsState()
-
-    LaunchedEffect(Unit) {
-        randomVM.generateSessions()
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "ランダム生成: 各周波数のフェードイン/アウト時間と再生タイミングをランダムに生成します",
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        if (state.sessions.isNotEmpty()) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(4.dp),
+                contentPadding = PaddingValues(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(state.sessions) { session ->
-                    val index = state.sessions.indexOf(session)
-                    val isSelected = state.selectedIndices.contains(index)
+                items(SolfeggioFrequency.ALL) { freq ->
                     SoundCard(
-                        soundType = session.soundType,
-                        isSelected = isSelected,
-                        onClick = { randomVM.toggleSelection(index) }
+                        soundType = SoundType.Solfeggio(freq),
+                        isSelected = false,
+                        onClick = {
+                            clickCount++
+                            lastClick = "カード: ${freq.name}"
+                            viewModel.playSound(SoundType.Solfeggio(freq))
+                        }
                     )
                 }
             }
 
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "選択中: ${state.selectedIndices.size} 個の周波数",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "音量", style = MaterialTheme.typography.bodyMedium)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    VolumeSlider(
-                        value = state.volume,
-                        onValueChange = { randomVM.setVolume(it) }
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = { randomVM.startPlaying() },
-                        modifier = Modifier.weight(1f),
-                        enabled = state.selectedIndices.isNotEmpty() && !state.isPlaying
-                    ) {
-                        Text("再生")
-                    }
-                    Button(
-                        onClick = { randomVM.stopPlaying() },
-                        modifier = Modifier.weight(1f),
-                        enabled = state.isPlaying,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("停止")
-                    }
-                }
-            }
+            VolumeSlider(
+                value = uiState.volume,
+                onValueChange = { viewModel.setVolume(it) }
+            )
         }
     }
 }
